@@ -8,7 +8,7 @@ Repository for homework project.
 
 ## Доступный функционал
 
-![](D:\P\dev_folder\java-kanban\TaskManager-image.png)
+![](TaskManager-image.png)
 
 1. Создание тасок, эпиков и сабтасок, привязанных к эпику
 2. Обновление заголовка и описания для таски, эпика и сабтаски
