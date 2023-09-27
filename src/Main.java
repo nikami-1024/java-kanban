@@ -35,6 +35,8 @@ public class Main {
         tm.createSubtask("Отпраздновать тортиком", "Съесть прямо ложкой из коробки", 8);
 
         // обновление эпика и сабтасок
+        tm.printInfoEpic(4);
+        tm.printInfoEpic(8);
         tm.printInfoEpicWithSubtasks(4);
         tm.updateEpicTitle(4, "Купить зимнюю куртку");
         tm.updateSubtaskStatus(6, Status.IN_PROGRESS);
@@ -48,6 +50,7 @@ public class Main {
 
         tm.printInfoEpicWithSubtasks(8);
         tm.updateSubtaskStatus(9, Status.DONE);
+        tm.updateSubtaskStatus(12, Status.IN_PROGRESS);
         tm.deleteSubtaskFromEpic(10);
         tm.moveSubtask(14, 4);
 

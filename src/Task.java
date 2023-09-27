@@ -1,18 +1,23 @@
 public class Task {
-    protected int ID;
+    protected int id;
     protected String title;
     protected String description;
     protected Status status;
+    private static int count = 0;
 
-    public Task(int ID, String title, String description, Status status) {
-        this.ID = ID;
+    public Task(String title, String description) {
+        this.id = generateId();
         this.title = title;
         this.description = description;
-        this.status = status;
+        status = Status.NEW;
     }
 
-    public int getID() {
-        return ID;
+    private int generateId() {
+        return ++count;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getTitle() {
@@ -25,5 +30,17 @@ public class Task {
 
     public Status getStatus() {
         return status;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }
