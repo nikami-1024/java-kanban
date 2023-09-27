@@ -3,9 +3,9 @@ public class Main {
         TaskManager tm = new TaskManager();
 
         // создание и обработка тасок
-        tm.createTask("Купить молока", "Банановое, фундучное, по 1л.");
-        tm.createTask("Помыть посуду", "Всю-всю, и сковородку тоже.");
-        tm.createTask("Купить игрушку коту", "Звенящий мячик");
+        Task taskOne = tm.createTask("Купить молока", "Банановое, фундучное, по 1л.");
+        Task taskTwo = tm.createTask("Помыть посуду", "Всю-всю, и сковородку тоже.");
+        Task taskThree = tm.createTask("Купить игрушку коту", "Звенящий мячик");
 
         tm.printInfoTask(1);
         tm.updateTaskTitle(1, "Купить НЕмолока");
@@ -14,25 +14,22 @@ public class Main {
         tm.updateTaskStatus(3, Status.DONE);
 
         tm.printInfoAllTasks();
-        tm.deleteTask(3);
-        tm.deleteAllTasks();
-        tm.printInfoAllTasks();
 
-        tm.createEpic("Купить куртку", "Зимнюю, тёплую, с карманами");
-        tm.createSubtask("Выделить бюджет",
+        Epic epicOne = tm.createEpic("Купить куртку", "Зимнюю, тёплую, с карманами");
+        Subtask subtaskA = tm.createSubtask("Выделить бюджет",
                 "Посчитать максимально допустимую стоимость куртки", 4);
-        tm.createSubtask("Выбрать цвет",
+        Subtask subtaskB = tm.createSubtask("Выбрать цвет",
                 "Синяя или голубая? Со световозвращайками?", 4);
-        tm.createSubtask("Сходить в магазин",
+        Subtask subtaskC = tm.createSubtask("Сходить в магазин",
                 "Перемерить все куртки и купить самую крутую!", 4);
 
-        tm.createEpic("Почистить ноутбук", "А то перегревается и запылился =(");
-        tm.createSubtask("Найти инструкцию", "И посмотреть картинки", 8);
-        tm.createSubtask("Подготовить рабочее место", "Проверить, есть ли термопаста", 8);
-        tm.createSubtask("Разобрать ноут", "Не потеряй винтики!", 8);
-        tm.createSubtask("Почистить систему охлаждения", "И обновить термопасту", 8);
-        tm.createSubtask("Собрать ноут", "Не осталось лишних винтиков?", 8);
-        tm.createSubtask("Отпраздновать тортиком", "Съесть прямо ложкой из коробки", 8);
+        Epic epicTwo = tm.createEpic("Почистить ноутбук", "А то перегревается и запылился =(");
+        Subtask subtaskD = tm.createSubtask("Найти инструкцию", "И посмотреть картинки", 8);
+        Subtask subtaskE = tm.createSubtask("Подготовить рабочее место", "Проверить, есть ли термопаста", 8);
+        Subtask subtaskF = tm.createSubtask("Разобрать ноут", "Не потеряй винтики!", 8);
+        Subtask subtaskG = tm.createSubtask("Почистить систему охлаждения", "И обновить термопасту", 8);
+        Subtask subtaskH = tm.createSubtask("Собрать ноут", "Не осталось лишних винтиков?", 8);
+        Subtask subtaskI = tm.createSubtask("Отпраздновать тортиком", "Съесть прямо ложкой из коробки", 8);
 
         // обновление эпика и сабтасок
         tm.printInfoEpic(4);
@@ -48,6 +45,13 @@ public class Main {
         tm.updateSubtaskStatus(7, Status.DONE);
         tm.printInfoEpicWithSubtasks(4);
 
+        Task taskExample = tm.getTaskById(3);
+        Epic epicExample = tm.getEpicById(4);
+        Subtask subtaskExapmle = tm.getSubtaskById(14);
+        System.out.println("\n" + taskExample.toString());
+        System.out.println("\n" + epicExample.toString());
+        System.out.println("\n" + subtaskExapmle.toString());
+
         tm.printInfoEpicWithSubtasks(8);
         tm.updateSubtaskStatus(9, Status.DONE);
         tm.updateSubtaskStatus(12, Status.IN_PROGRESS);
@@ -57,6 +61,8 @@ public class Main {
         tm.printInfoAllEpics();
         tm.printInfoAllEpicsWithSubtasks();
 
+        tm.deleteTask(3);
+        tm.deleteAllTasks();
         tm.deleteEpic(4);
         tm.deleteAllSubtasksFromEpic(8);
         tm.deleteAllEpics();

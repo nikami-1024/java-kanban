@@ -14,23 +14,25 @@ public class TaskManager {
     }
 
     // создание таски
-    public void createTask(String title, String description) {
+    public Task createTask(String title, String description) {
         Task task = new Task(title, description);
         tasks.put(task.getId(), task);
         System.out.println("\nНовая таска создана!");
         System.out.println("ID-" + task.getId() + " -- " + task.getTitle());
+        return task;
     }
 
     // создание эпика
-    public void createEpic(String title, String description) {
+    public Epic createEpic(String title, String description) {
         Epic epic = new Epic(title, description);
         epics.put(epic.getId(), epic);
         System.out.println("\nНовый эпик создан!");
         System.out.println("ID-" + epic.getId() + " -- " + epic.getTitle());
+        return epic;
     }
 
     // создание сабтаски
-    public void createSubtask(String title, String description, int epicId) {
+    public Subtask createSubtask(String title, String description, int epicId) {
         Epic epic = epics.get(epicId);
         ArrayList<Integer> subtasksIds = epic.getSubtasksIds();
         Subtask subtask = new Subtask(title, description, epicId);
@@ -43,6 +45,7 @@ public class TaskManager {
         System.out.println("\nВ эпик ID-" + epicId + " добавлена новая сабтаска");
         System.out.println("ID-" + subId + " -- " + title);
         calculateEpicStatus(epicId);
+        return subtask;
     }
 
     // обновление заголовка таски
@@ -369,5 +372,20 @@ public class TaskManager {
         }
 
         return epicId;
+    }
+
+    // возврат таски по ID
+    public Task getTaskById(int taskId) {
+        return tasks.get(taskId);
+    }
+
+    // возврат эпика по ID
+    public Epic getEpicById(int epicId) {
+        return epics.get(epicId);
+    }
+
+    // возврат сабтаски по ID
+    public Subtask getSubtaskById(int subId) {
+        return subtasks.get(subId);
     }
 }
