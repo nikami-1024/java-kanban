@@ -1,3 +1,5 @@
+package model;
+
 public class Task {
     protected int id;
     protected String title;
@@ -46,6 +48,6 @@ public class Task {
 
     @Override
     public String toString() {
-        return "ID-" + id + " -- " + status + " -- " + title + ": " + description;
+        return "Task ID-" + id + " -- " + status + " -- " + title + ": " + description;
     }
 }

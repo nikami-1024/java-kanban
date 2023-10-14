@@ -1,3 +1,10 @@
+package manager;
+
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -5,12 +12,14 @@ public class InMemoryTaskManager implements TaskManager {
     protected HashMap<Integer, Task> tasks;
     protected HashMap<Integer, Epic> epics;
     protected HashMap<Integer, Subtask> subtasks;
+    HistoryManager imhm;
 
     public InMemoryTaskManager() {
         tasks = new HashMap<>();
         epics = new HashMap<>();
         subtasks = new HashMap<>();
-        System.out.println("Добро пожаловать в InMemory таск менеджер!");
+        imhm = Managers.getDefaultHistory();
+        System.out.println("\nДобро пожаловать в InMemory таск менеджер!");
     }
 
     // создание таски
@@ -267,122 +276,6 @@ public class InMemoryTaskManager implements TaskManager {
         calculateEpicStatus(epicId);
     }
 
-    // ⚪🟡🟢
-    // вывод информации о таске
-    @Override
-    public void printInfoTask(int taskId) {
-        Task task = tasks.get(taskId);
-        String title = task.getTitle();
-        String description = task.getDescription();
-        Status status = task.getStatus();
-        String icon = "";
-
-        if (status == Status.NEW) {
-            icon = "⚪ New -- ";
-        } else if (status == Status.DONE) {
-            icon = "\uD83D\uDFE2 Done -- ";
-        } else if (status == Status.IN_PROGRESS) {
-            icon = "\uD83D\uDFE1 In progress -- ";
-        }
-
-        System.out.println("\nТаска ID-" + taskId + ": ");
-        System.out.println(icon + title);
-        System.out.println(description);
-    }
-
-    // ⬜🟨✅
-    // вывод информации об эпике
-    @Override
-    public void printInfoEpic(int epicId) {
-        Epic epic = epics.get(epicId);
-        String title = epic.getTitle();
-        String description = epic.getDescription();
-        Status status = epic.getStatus();
-        int subCounter = epic.getSubtasksIds().size();
-        String icon = "";
-
-        if (status == Status.NEW) {
-            icon = "⬜ New -- ";
-        } else if (status == Status.DONE) {
-            icon = "✅ Done -- ";
-        } else if (status == Status.IN_PROGRESS) {
-            icon = "\uD83D\uDFE8 In progress -- ";
-        }
-
-        System.out.println("\nЭпик ID-" + epicId + ": ");
-        System.out.println(icon + title);
-        System.out.println(description);
-        System.out.println("Сабтасок: " + subCounter);
-    }
-
-    // 💀😸👽
-    // вывод информации о сабтаске
-    private void printInfoSubtask(int subId) {
-        int epicId = findEpicOfSubtask(subId);
-        Epic epic = epics.get(epicId);
-        Subtask subtask = subtasks.get(subId);
-        String title = subtask.getTitle();
-        String description = subtask.getDescription();
-        Status status = subtask.getStatus();
-        String icon = "";
-
-        if (status == Status.NEW) {
-            icon = "\uD83D\uDC80 New -- ";
-        } else if (status == Status.DONE) {
-            icon = "\uD83D\uDC7D Done -- ";
-        } else if (status == Status.IN_PROGRESS) {
-            icon = "\uD83D\uDE38 In progress -- ";
-        }
-
-        System.out.println("\nЭпик ID-" + epicId + " -> Сабтаска ID-" + subId + ": ");
-        System.out.println(icon + title);
-        System.out.println(description);
-    }
-
-    // вывод информации о всех сабтасках эпика (если есть)
-    private void printInfoAllSubtasksOfEpic(int epicId) {
-        Epic epic = epics.get(epicId);
-        ArrayList<Integer> subtasks = epic.getSubtasksIds();
-        if (subtasks.size() > 0) {
-            for (Integer subId : subtasks) {
-                printInfoSubtask(subId);
-            }
-        } else {
-            System.out.println("\nЭпик ID-" + epicId + " не содержит сабтасок");
-        }
-    }
-
-    // вывод информации об эпике со всеми его сабтасками
-    @Override
-    public void printInfoEpicWithSubtasks(int epicId) {
-        printInfoEpic(epicId);
-        printInfoAllSubtasksOfEpic(epicId);
-    }
-
-    // вывод информации о всех тасках
-    @Override
-    public void printInfoAllTasks() {
-        for (Integer taskId : tasks.keySet()) {
-            printInfoTask(taskId);
-        }
-    }
-
-    // вывод информации о всех эпиках без сабтасок
-    @Override
-    public void printInfoAllEpics() {
-        for (Integer epicId : epics.keySet()) {
-            printInfoEpic(epicId);
-        }
-    }
-
-    // вывод информации о всех эпиках с сабтасками
-    @Override
-    public void printInfoAllEpicsWithSubtasks() {
-        for (Integer epicId : epics.keySet()) {
-            printInfoEpicWithSubtasks(epicId);
-        }
-    }
-
     // найти эпик по ID сабтаски
     private int findEpicOfSubtask(int subId) {
         int epicId = -1;
@@ -401,18 +294,32 @@ public class InMemoryTaskManager implements TaskManager {
     // возврат таски по ID
     @Override
     public Task getTaskById(int taskId) {
+        Task task = tasks.get(taskId);
+        imhm.addToHistory(task);
         return tasks.get(taskId);
     }
 
     // возврат эпика по ID
     @Override
     public Epic getEpicById(int epicId) {
+        Task task = epics.get(epicId);
+        imhm.addToHistory(task);
         return epics.get(epicId);
     }
 
     // возврат сабтаски по ID
     @Override
     public Subtask getSubtaskById(int subId) {
+        Subtask task = subtasks.get(subId);
+        imhm.addToHistory(task);
         return subtasks.get(subId);
+    }
+
+    @Override
+    public void getHistory() {
+        System.out.println("\nИстория просмотров:");
+        for (Task entity : imhm.getHistory()) {
+            System.out.println(entity.toString());
+        }
     }
 }

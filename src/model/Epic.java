@@ -1,5 +1,6 @@
+package model;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Epic extends Task {
     protected ArrayList<Integer> subtasksIds;
@@ -9,7 +10,7 @@ public class Epic extends Task {
         subtasksIds = new ArrayList<>();
     }
 
-    protected ArrayList<Integer> getSubtasksIds() {
+    public ArrayList<Integer> getSubtasksIds() {
         return subtasksIds;
     }
 
@@ -19,6 +20,7 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return "ID-" + id + " -- " + status + " -- " + title + ": " + description + " -- " + subtasksIds.toString();
+        return "Epic ID-" + id + " -- " + status + " -- " + title + ": " + description +
+                " -- " + subtasksIds.toString();
     }
 }

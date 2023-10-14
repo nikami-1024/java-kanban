@@ -1,24 +1,32 @@
-import java.util.ArrayList;
+import manager.Managers;
+import manager.TaskManager;
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
 
 public class Main {
     public static void main(String[] args) {
         TaskManager imtm = Managers.getDefault();
-        HistoryManager hm = Managers.getDefaultHistory();
 
-        // создание и обработка тасок
+        System.out.println("\nСоздание тасок:");
         Task taskOne = imtm.createTask("Купить молока", "Банановое, фундучное, по 1л.");
         Task taskTwo = imtm.createTask("Помыть посуду", "Всю-всю, и сковородку тоже.");
         Task taskThree = imtm.createTask("Купить игрушку коту", "Звенящий мячик");
 
-        imtm.printInfoTask(1);
+        System.out.println("\nОбновление тасок:");
+        System.out.println("\n" + taskOne.toString());
+
         imtm.updateTaskTitle(1, "Купить НЕмолока");
         imtm.updateTaskDescription(1, "Банановое, миндальное, фундучное, по 1л.");
         imtm.updateTaskStatus(1, Status.IN_PROGRESS);
         imtm.updateTaskStatus(3, Status.DONE);
 
-        imtm.printInfoAllTasks();
+        System.out.println("\n" + imtm.getTaskById(1).toString());
+        System.out.println(imtm.getTaskById(2).toString());
+        System.out.println(imtm.getTaskById(3).toString());
 
-        // создание эпиков и сабтасок
+        System.out.println("\nСоздание эпиков и сабтасок:");
         Epic epicOne = imtm.createEpic("Купить куртку", "Зимнюю, тёплую, с карманами");
         Subtask subtaskA = imtm.createSubtask("Выделить бюджет",
                 "Посчитать максимально допустимую стоимость куртки", 4);
@@ -41,10 +49,13 @@ public class Main {
         Subtask subtaskI = imtm.createSubtask("Отпраздновать тортиком",
                 "Съесть прямо ложкой из коробки", 8);
 
-        // обновление эпика и сабтасок
-        imtm.printInfoEpic(4);
-        imtm.printInfoEpic(8);
-        imtm.printInfoEpicWithSubtasks(4);
+        System.out.println("\nОбновление эпика и сабтасок:");
+        System.out.println("\n" + imtm.getEpicById(8).toString());
+        System.out.println(imtm.getEpicById(4).toString());
+        System.out.println(imtm.getSubtaskById(5).toString());
+        System.out.println(imtm.getSubtaskById(6).toString());
+        System.out.println(imtm.getSubtaskById(7).toString());
+
         imtm.updateEpicTitle(4, "Купить зимнюю куртку");
         imtm.updateSubtaskStatus(6, Status.IN_PROGRESS);
         imtm.updateSubtaskTitle(6, "Выбрать идеальный цвет");
@@ -53,58 +64,39 @@ public class Main {
         imtm.updateEpicDescription(4, "Синюю, тёплую, с карманами и световозвращайками");
         imtm.updateSubtaskStatus(5, Status.DONE);
         imtm.updateSubtaskStatus(7, Status.DONE);
-        imtm.printInfoEpicWithSubtasks(4);
 
-        // проверка вывода в строку
-        Task taskExample = imtm.getTaskById(3);
-        hm.addToHistory(taskExample);
-        Epic epicExample = imtm.getEpicById(4);
-        hm.addToHistory(epicExample);
-        Subtask subtaskExapmle = imtm.getSubtaskById(14);
-        hm.addToHistory(subtaskExapmle);
-        System.out.println("\n" + taskExample.toString());
-        System.out.println("\n" + epicExample.toString());
-        System.out.println("\n" + subtaskExapmle.toString());
+        System.out.println("\n" + imtm.getEpicById(4).toString());
+        System.out.println(imtm.getSubtaskById(5).toString());
+        System.out.println(imtm.getSubtaskById(6).toString());
+        System.out.println(imtm.getSubtaskById(7).toString());
 
-        // проверка всех комбинаций статусов
-        imtm.printInfoEpicWithSubtasks(8);
+        System.out.println("\nПроверка всех комбинаций статусов:");
+        System.out.println("\n" + imtm.getEpicById(4).toString());
+        System.out.println(imtm.getEpicById(8).toString());
+
         imtm.updateSubtaskStatus(9, Status.DONE);
         imtm.updateSubtaskStatus(12, Status.IN_PROGRESS);
         imtm.deleteSubtaskFromEpic(10);
         imtm.moveSubtask(14, 4);
 
-        imtm.printInfoAllEpics();
-        imtm.printInfoAllEpicsWithSubtasks();
+        System.out.println("\n" + imtm.getEpicById(4).toString());
+        System.out.println(imtm.getEpicById(8).toString());
 
-        // тест истории
-        System.out.println("\nВывод истории просмотров:");
-        for (Task entity : hm.getHistory()) {
-            System.out.println(entity.toString());
-        }
+        System.out.println("\nТест истории:");
+        imtm.getHistory();
 
-        taskExample = imtm.getTaskById(1);
-        hm.addToHistory(taskExample);
-        taskExample = imtm.getTaskById(1);
-        hm.addToHistory(taskExample);
-        taskExample = imtm.getTaskById(1);
-        hm.addToHistory(taskExample);
-        taskExample = imtm.getTaskById(1);
-        hm.addToHistory(taskExample);
-        taskExample = imtm.getTaskById(1);
-        hm.addToHistory(taskExample);
-        taskExample = imtm.getTaskById(1);
-        hm.addToHistory(taskExample);
-        taskExample = imtm.getTaskById(1);
-        hm.addToHistory(taskExample);
-        taskExample = imtm.getTaskById(2);
-        hm.addToHistory(taskExample);
+        taskOne = imtm.getTaskById(1);
+        taskOne = imtm.getTaskById(1);
+        taskOne = imtm.getTaskById(1);
+        taskOne = imtm.getTaskById(1);
+        taskOne = imtm.getTaskById(1);
+        taskOne = imtm.getTaskById(1);
+        taskOne = imtm.getTaskById(1);
+        taskTwo = imtm.getTaskById(2);
 
-        System.out.println("\nИстория просмотров:");
-        for (Task entity : hm.getHistory()) {
-            System.out.println(entity.toString());
-        }
+        imtm.getHistory();
 
-        // очищение хранилищ
+        System.out.println("\nОчищение хранилищ:");
         imtm.deleteTask(3);
         imtm.deleteAllTasks();
         imtm.deleteEpic(4);

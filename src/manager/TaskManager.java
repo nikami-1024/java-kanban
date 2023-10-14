@@ -1,4 +1,9 @@
-import java.util.ArrayList;
+package manager;
+
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
 
 public interface TaskManager {
 
@@ -56,24 +61,6 @@ public interface TaskManager {
     // удаление всех-всех сабтасок у эпика
     public void deleteAllSubtasksFromEpic(int epicId);
 
-    // вывод информации о таске
-    public void printInfoTask(int taskId);
-
-    // вывод информации об эпике
-    public void printInfoEpic(int epicId);
-
-    // вывод информации об эпике со всеми его сабтасками
-    public void printInfoEpicWithSubtasks(int epicId);
-
-    // вывод информации о всех тасках
-    public void printInfoAllTasks();
-
-    // вывод информации о всех эпиках без сабтасок
-    public void printInfoAllEpics();
-
-    // вывод информации о всех эпиках с сабтасками
-    public void printInfoAllEpicsWithSubtasks();
-
     // возврат таски по ID
     public Task getTaskById(int taskId);
 
@@ -82,4 +69,7 @@ public interface TaskManager {
 
     // возврат сабтаски по ID
     public Subtask getSubtaskById(int subId);
+
+    // вывод человекочитаемой истории
+    public void getHistory();
 }

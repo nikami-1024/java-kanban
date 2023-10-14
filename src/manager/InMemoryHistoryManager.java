@@ -1,22 +1,27 @@
-import java.util.ArrayList;
+package manager;
+
+import model.Task;
+
+import java.util.LinkedList;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    protected ArrayList<Task> history = new ArrayList<>();
+    protected LinkedList<Task> history = new LinkedList<>();
 
     // добавление сущности в историю
+    // свежая добавляется наверх списка
     @Override
     public void addToHistory(Task task) {
         if (history.size() == 10) {
-            history.remove(0);
-            history.add(task);
+            history.pollLast();
+            history.addFirst(task);
         } else {
-            history.add(task);
+            history.addFirst(task);
         }
     }
 
     // получение истории - последние 10 просмотренных объектов
     @Override
-    public ArrayList<Task> getHistory() {
+    public LinkedList<Task> getHistory() {
         return history;
     }
 }
