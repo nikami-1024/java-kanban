@@ -7,6 +7,7 @@ import model.Task;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public class InMemoryTaskManager implements TaskManager {
     protected HashMap<Integer, Task> tasks;
@@ -315,11 +316,9 @@ public class InMemoryTaskManager implements TaskManager {
         return subtasks.get(subId);
     }
 
+    // возврат истории
     @Override
-    public void getHistory() {
-        System.out.println("\nИстория просмотров:");
-        for (Task entity : imhm.getHistory()) {
-            System.out.println(entity.toString());
-        }
+    public LinkedList<Task> getHistory() {
+        return imhm.getHistory();
     }
 }

@@ -5,6 +5,8 @@ import model.Status;
 import model.Subtask;
 import model.Task;
 
+import java.util.LinkedList;
+
 public interface TaskManager {
 
     // создание таски
@@ -70,6 +72,6 @@ public interface TaskManager {
     // возврат сабтаски по ID
     public Subtask getSubtaskById(int subId);
 
-    // вывод человекочитаемой истории
-    public void getHistory();
+    // возврат истории
+    public LinkedList<Task> getHistory();
 }

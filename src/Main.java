@@ -83,7 +83,10 @@ public class Main {
         System.out.println(imtm.getEpicById(8).toString());
 
         System.out.println("\nТест истории:");
-        imtm.getHistory();
+        System.out.println("\nИстория просмотров:\n");
+        for (Task entity : imtm.getHistory()) {
+            System.out.println(entity.toString());
+        }
 
         taskOne = imtm.getTaskById(1);
         taskOne = imtm.getTaskById(1);
@@ -94,7 +97,10 @@ public class Main {
         taskOne = imtm.getTaskById(1);
         taskTwo = imtm.getTaskById(2);
 
-        imtm.getHistory();
+        System.out.println("\nИстория просмотров:\n");
+        for (Task entity : imtm.getHistory()) {
+            System.out.println(entity.toString());
+        }
 
         System.out.println("\nОчищение хранилищ:");
         imtm.deleteTask(3);
