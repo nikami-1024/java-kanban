@@ -66,6 +66,7 @@ public class Main {
         imtm.updateSubtaskStatus(7, Status.DONE);
 
         System.out.println("\n" + imtm.getEpicById(4).toString());
+
         System.out.println(imtm.getSubtaskById(5).toString());
         System.out.println(imtm.getSubtaskById(6).toString());
         System.out.println(imtm.getSubtaskById(7).toString());
