@@ -13,7 +13,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected HashMap<Integer, Task> tasks;
     protected HashMap<Integer, Epic> epics;
     protected HashMap<Integer, Subtask> subtasks;
-    HistoryManager imhm;
+    protected HistoryManager imhm;
 
     public InMemoryTaskManager() {
         tasks = new HashMap<>();
@@ -28,7 +28,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Task createTask(String title, String description) {
         Task task = new Task(title, description);
         tasks.put(task.getId(), task);
-        System.out.println("\nНовая таска создана!");
+        System.out.println("\nСоздана новая таска:");
         System.out.println("ID-" + task.getId() + " -- " + task.getTitle());
         return task;
     }
@@ -38,7 +38,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Epic createEpic(String title, String description) {
         Epic epic = new Epic(title, description);
         epics.put(epic.getId(), epic);
-        System.out.println("\nНовый эпик создан!");
+        System.out.println("\nСоздан новый эпик:");
         System.out.println("ID-" + epic.getId() + " -- " + epic.getTitle());
         return epic;
     }
@@ -55,7 +55,7 @@ public class InMemoryTaskManager implements TaskManager {
         subtasksIds.add(subId);
         epic.setSubtasksIds(subtasksIds);
 
-        System.out.println("\nВ эпик ID-" + epicId + " добавлена новая сабтаска");
+        System.out.println("\nДобавлена новая сабтаска в эпик ID-" + epicId + ":");
         System.out.println("ID-" + subId + " -- " + title);
         calculateEpicStatus(epicId);
         return subtask;
@@ -181,6 +181,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // перемещение сабтаски в новый эпик
+    // сущность в истории просмотров (если была) не затрагивается никак
     @Override
     public void moveSubtask(int subId, int newEpicId) {
         Subtask subtask = subtasks.get(subId);
@@ -233,6 +234,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteEpic(int epicId) {
         ArrayList<Integer> subtasksIds = epics.get(epicId).getSubtasksIds();
         for (Integer subId : subtasksIds) {
+            imhm.remove(subId);
             subtasks.remove(subId);
         }
         imhm.remove(epicId);
@@ -243,7 +245,17 @@ public class InMemoryTaskManager implements TaskManager {
     // удаление всех-всех эпиков с сабтасками
     @Override
     public void deleteAllEpics() {
-        //TODO - add removing from history
+        // удаление всех сабтасок из истории просмотра
+        for (Integer subId : subtasks.keySet()) {
+            imhm.remove(subId);
+        }
+
+        // удаление всех эпиков из истории просмотра
+        for (Integer epicId : epics.keySet()) {
+            imhm.remove(epicId);
+        }
+
+        // очищение мап сабтасок и эпиков
         subtasks.clear();
         epics.clear();
         System.out.println("\nВсе эпики с сабтасками безвозвратно удалены");
@@ -252,7 +264,6 @@ public class InMemoryTaskManager implements TaskManager {
     // удаление сабтаски по ID
     @Override
     public void deleteSubtaskFromEpic(int subId) {
-        //TODO - add removing from history
         int epicId = findEpicOfSubtask(subId);
         Epic epic = epics.get(epicId);
         ArrayList<Integer> subtasksIds = epic.getSubtasksIds();
@@ -262,6 +273,8 @@ public class InMemoryTaskManager implements TaskManager {
         epic.setSubtasksIds(subtasksIds);
         epics.put(epicId, epic);
 
+        imhm.remove(subId);
+
         System.out.println("\nСабтаска ID-" + subId + " удалена из эпика ID-" + epicId);
         calculateEpicStatus(epicId);
     }
@@ -269,11 +282,11 @@ public class InMemoryTaskManager implements TaskManager {
     // удаление всех-всех сабтасок у эпика
     @Override
     public void deleteAllSubtasksFromEpic(int epicId) {
-        //TODO - add removing from history
         Epic epic = epics.get(epicId);
         ArrayList<Integer> subtasksIds = epic.getSubtasksIds();
 
         for (Integer subId : subtasksIds) {
+            imhm.remove(subId);
             subtasks.remove(subId);
         }
 
@@ -328,5 +341,11 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public LinkedList<Task> getHistory() {
         return imhm.getHistory();
+    }
+
+    // возврат количества всех существующих сущностей
+    @Override
+    public int getEntitiesCounter() {
+        return tasks.size() + epics.size() + subtasks.size();
     }
 }

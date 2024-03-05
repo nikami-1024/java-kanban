@@ -4,7 +4,7 @@ import model.Task;
 import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    CustomLinkedList cll = new CustomLinkedList();
+    protected CustomLinkedList cll = new CustomLinkedList();
 
     // добавление сущности в историю
     @Override
@@ -46,7 +46,7 @@ public class InMemoryHistoryManager implements HistoryManager {
             // таска уже была просмотрена ранее?
             boolean isAlreadyViewed = cll.historyMap.containsKey(newNode.getTaskId());
             // таска - хвостик?
-            boolean isTail = cll.getTail() == newNode.getTaskId() ? true : false;
+            boolean isTail = cll.getTail() == newNode.getTaskId();
 
             // если уже в мапе и не хвостик - удалить через remove()
             // и добавить в хвостик
@@ -63,9 +63,8 @@ public class InMemoryHistoryManager implements HistoryManager {
                 // если ещё не просмотрена - просто добавить в хвостик
                 Node<Task> obsTail = (Node<Task>) cll.historyMap.get(cll.getTail());
                 obsTail.setNext(newNode.getTaskId());
-                newNode.setPrev(cll.getTail());
+                newNode.setPrev(obsTail.getTaskId());
                 cll.setTail(newNode.getTaskId());
-                cll.historyMap.put(obsTail.getTaskId(), obsTail);
                 cll.historyMap.put(newNode.getTaskId(), newNode);
             }
         }
@@ -76,53 +75,56 @@ public class InMemoryHistoryManager implements HistoryManager {
         // взять ноду из мапы
         // проверить на соответствие голове и хвосту
         Node<Task> taskNode = (Node<Task>) cll.historyMap.get(taskId);
-        boolean isHead = Objects.equals(cll.getHead(), taskNode.getTaskId());
-        boolean isTail = Objects.equals(cll.getTail(), taskNode.getTaskId());
 
-        if (!isHead && !isTail) {
-            // если не голова и не хвост
-            // перезаписать prev/next у соседних нод
-            // обновить их в мапе
-            // удалить исходную ноду из мапы
-            Node<Task> prevNode = (Node<Task>) cll.historyMap.get(taskNode.getPrevId());
-            Node<Task> nextNode = (Node<Task>) cll.historyMap.get(taskNode.getNextId());
-            prevNode.setNext(taskNode.getNextId());
-            nextNode.setPrev(taskNode.getPrevId());
-            cll.historyMap.put(prevNode.getTaskId(), prevNode);
-            cll.historyMap.put(nextNode.getTaskId(), nextNode);
-            cll.historyMap.remove(taskNode.getTaskId());
+        if (taskNode != null) {
+            boolean isHead = Objects.equals(cll.getHead(), taskNode.getTaskId());
+            boolean isTail = Objects.equals(cll.getTail(), taskNode.getTaskId());
 
-        } else if (isHead && isTail) {
-            // если и голова, и хвост
-            // то обнулить headId/tailId
-            // и почистить мапу
-            cll.setHead(null);
-            cll.setTail(null);
-            cll.historyMap.clear();
+            if (!isHead && !isTail) {
+                // если не голова и не хвост
+                // перезаписать prev/next у соседних нод
+                // обновить их в мапе
+                // удалить исходную ноду из мапы
+                Node<Task> prevNode = (Node<Task>) cll.historyMap.get(taskNode.getPrevId());
+                Node<Task> nextNode = (Node<Task>) cll.historyMap.get(taskNode.getNextId());
+                prevNode.setNext(taskNode.getNextId());
+                nextNode.setPrev(taskNode.getPrevId());
+                cll.historyMap.put(prevNode.getTaskId(), prevNode);
+                cll.historyMap.put(nextNode.getTaskId(), nextNode);
+                cll.historyMap.remove(taskNode.getTaskId());
 
-        } else if (isHead) {
-            // если голова
-            // перезаписать prev на null у следующей ноды
-            // обновить её в мапе
-            // обновить headId
-            // удалить исходную ноду из мапы
-            Node<Task> nextNode = (Node<Task>) cll.historyMap.get(taskNode.getNextId());
-            nextNode.setPrev(null);
-            cll.historyMap.put(nextNode.getTaskId(), nextNode);
-            cll.setHead(nextNode.getTaskId());
-            cll.historyMap.remove(taskNode.getTaskId());
+            } else if (isHead && isTail) {
+                // если и голова, и хвост
+                // то обнулить headId/tailId
+                // и почистить мапу
+                cll.setHead(null);
+                cll.setTail(null);
+                cll.historyMap.clear();
 
-        } else if (isTail) {
-            // если хвост
-            // перезаписать next на null у предыдущей ноды
-            // обновить её в мапе
-            // обновить tailId
-            // удалить исходную ноду из мапы
-            Node<Task> prevNode = (Node<Task>) cll.historyMap.get(taskNode.getPrevId());
-            prevNode.setNext(null);
-            cll.historyMap.put(prevNode.getTaskId(), prevNode);
-            cll.setTail(prevNode.getTaskId());
-            cll.historyMap.remove(taskNode.getTaskId());
+            } else if (isHead) {
+                // если голова
+                // перезаписать prev на null у следующей ноды
+                // обновить её в мапе
+                // обновить headId
+                // удалить исходную ноду из мапы
+                Node<Task> nextNode = (Node<Task>) cll.historyMap.get(taskNode.getNextId());
+                nextNode.setPrev(null);
+                cll.historyMap.put(nextNode.getTaskId(), nextNode);
+                cll.setHead(nextNode.getTaskId());
+                cll.historyMap.remove(taskNode.getTaskId());
+
+            } else if (isTail) {
+                // если хвост
+                // перезаписать next на null у предыдущей ноды
+                // обновить её в мапе
+                // обновить tailId
+                // удалить исходную ноду из мапы
+                Node<Task> prevNode = (Node<Task>) cll.historyMap.get(taskNode.getPrevId());
+                prevNode.setNext(null);
+                cll.historyMap.put(prevNode.getTaskId(), prevNode);
+                cll.setTail(prevNode.getTaskId());
+                cll.historyMap.remove(taskNode.getTaskId());
+            }
         }
     }
 
@@ -132,57 +134,57 @@ public class InMemoryHistoryManager implements HistoryManager {
     public LinkedList<Task> getHistory() {
         // брать из хэшмапы хвостовую ноду и идти по prev до head
         LinkedList<Task> historyList = new LinkedList<>();
-        Integer prevTaskId = cll.getTail();
 
-        while (prevTaskId != cll.getHead()) {
-            Node<Task> node = (Node<Task>) cll.historyMap.get(prevTaskId);
-            Task task = node.getData();
-            historyList.add(task);
-            prevTaskId = node.getPrevId();
+        if (!cll.historyMap.isEmpty()) {
+            Integer prevTaskId = cll.getTail();
+
+            do {
+                Node<Task> node = (Node<Task>) cll.historyMap.get(prevTaskId);
+                Task task = node.getData();
+                historyList.add(task);
+                prevTaskId = node.getPrevId();
+            } while (prevTaskId != null);
         }
 
         return historyList;
     }
 
     // узел списка истории
+    // prev/next хранится как Integer taskId
+    private class Node<Task> {
+        int taskId;
+        Task data;
+        Integer prevId;
+        Integer nextId;
 
-    // prev/next храню как Integer taskId
-    // так как при использовании Node node не вывожу
-    // рекурсивное одновременное обновление нод внутри других нод
-    public class Node<Task> {
-        public int taskId;
-        public Task data;
-        public Integer prevId;
-        public Integer nextId;
-
-        public Node(int taskId, Task task, Integer prevId, Integer nextId) {
+        Node(int taskId, Task task, Integer prevId, Integer nextId) {
             this.taskId = taskId;
             this.data = task;
             this.prevId = prevId;
             this.nextId = nextId;
         }
 
-        public Integer getTaskId() {
+        Integer getTaskId() {
             return taskId;
         }
 
-        public Integer getPrevId() {
+        Integer getPrevId() {
             return prevId;
         }
 
-        public Integer getNextId() {
+        Integer getNextId() {
             return nextId;
         }
 
-        public Task getData() {
+        Task getData() {
             return data;
         }
 
-        public void setPrev(Integer prevId) {
+        void setPrev(Integer prevId) {
             this.prevId = prevId;
         }
 
-        public void setNext(Integer nextId) {
+        void setNext(Integer nextId) {
             this.nextId = nextId;
         }
     }
@@ -190,29 +192,26 @@ public class InMemoryHistoryManager implements HistoryManager {
     // связный список для хранения истории в форме узлов
     // выглядит так, что всё это добро может жить просто в классе InMemoryHistoryManager
     // без вынесения в собственный класс CustomLinkedList<Task>
-
-    // headId/tailId храню как Integer taskId
-    // так как при использовании Node node не вывожу
-    // рекурсивное одновременное обновление нод внутри других нод
-    public class CustomLinkedList<Task> {
+    // headId/tailId хранится как Integer taskId
+    private class CustomLinkedList<Task> {
         Integer headId;
         Integer tailId;
 
         Map<Integer, Node<Task>> historyMap = new HashMap<>();
 
-        public void setHead(Integer taskId) {
-            this.headId = taskId;
+        void setHead(Integer taskId) {
+            headId = taskId;
         }
 
-        public void setTail(Integer taskId) {
-            this.tailId = taskId;
+        void setTail(Integer taskId) {
+            tailId = taskId;
         }
 
-        public Integer getHead() {
+        Integer getHead() {
             return headId;
         }
 
-        public Integer getTail() {
+        Integer getTail() {
             return tailId;
         }
     }
