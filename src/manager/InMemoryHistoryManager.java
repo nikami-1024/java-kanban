@@ -151,13 +151,13 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     // узел списка истории
     // prev/next хранится как Integer taskId
-    private class Node<Task> {
+    private class Node<T> {
         int taskId;
-        Task data;
+        T data;
         Integer prevId;
         Integer nextId;
 
-        Node(int taskId, Task task, Integer prevId, Integer nextId) {
+        Node(int taskId, T task, Integer prevId, Integer nextId) {
             this.taskId = taskId;
             this.data = task;
             this.prevId = prevId;
@@ -176,7 +176,7 @@ public class InMemoryHistoryManager implements HistoryManager {
             return nextId;
         }
 
-        Task getData() {
+        T getData() {
             return data;
         }
 
@@ -193,11 +193,11 @@ public class InMemoryHistoryManager implements HistoryManager {
     // выглядит так, что всё это добро может жить просто в классе InMemoryHistoryManager
     // без вынесения в собственный класс CustomLinkedList<Task>
     // headId/tailId хранится как Integer taskId
-    private class CustomLinkedList<Task> {
+    private class CustomLinkedList<T> {
         Integer headId;
         Integer tailId;
 
-        Map<Integer, Node<Task>> historyMap = new HashMap<>();
+        Map<Integer, Node<T>> historyMap = new HashMap<>();
 
         void setHead(Integer taskId) {
             headId = taskId;
