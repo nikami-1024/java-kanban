@@ -4,10 +4,13 @@ import model.Task;
 
 import java.util.LinkedList;
 
-public interface HistoryManager {
+interface HistoryManager {
     // добавление сущности в историю
-    public void addToHistory(Task task);
+    void addToHistory(Task task);
+
+    // удаление сущности из истории
+    void remove(int id);
 
     // получение истории - последние 10 просмотренных объектов
-    public LinkedList<Task> getHistory();
+    LinkedList<Task> getHistory();
 }
