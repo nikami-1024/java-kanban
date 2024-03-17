@@ -124,10 +124,11 @@ class SubtaskTest {
         Epic epicOne = imtm.createEpic("Test deleteAllSubtasksFromEpic epic",
                 "Test description");
         final int epicId = epicOne.getId();
-        Subtask subtaskOne = imtm.createSubtask("Test title", "Test description", epicId);
+        Subtask subtaskOne = imtm.createSubtask("Test title", "Test description",
+                epicId);
 
-        String expectedOutput = "Epic ID-" + epicId + " -> Subtask ID-" + subtaskOne.getId() +
-                " -- NEW -- Test title: Test description";
+        String expectedOutput = "SUBTASK," + subtaskOne.getId() + ",NEW,Test title," +
+                "Test description," + epicId;
         String actualOutput = subtaskOne.toString();
 
         assertEquals(expectedOutput, actualOutput, "Сабтаски не удалены.");

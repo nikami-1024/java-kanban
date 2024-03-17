@@ -107,7 +107,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // расчёт статуса эпика на основе статусов сабтасок
-    private void calculateEpicStatus(int epicId) {
+    protected void calculateEpicStatus(int epicId) {
         Epic epic = epics.get(epicId);
         ArrayList<Integer> subtasksIds = epic.getSubtasksIds();
         Status oldStatus = epic.getStatus();
@@ -299,7 +299,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // найти эпик по ID сабтаски
-    private int findEpicOfSubtask(int subId) {
+    protected int findEpicOfSubtask(int subId) {
         int epicId = -1;
 
         for (Integer epicIndx : epics.keySet()) {
@@ -324,16 +324,16 @@ public class InMemoryTaskManager implements TaskManager {
     // возврат эпика по ID
     @Override
     public Epic getEpicById(int epicId) {
-        Task task = epics.get(epicId);
-        imhm.addToHistory(task);
+        Epic epic = epics.get(epicId);
+        imhm.addToHistory(epic);
         return epics.get(epicId);
     }
 
     // возврат сабтаски по ID
     @Override
     public Subtask getSubtaskById(int subId) {
-        Subtask task = subtasks.get(subId);
-        imhm.addToHistory(task);
+        Subtask subtask = subtasks.get(subId);
+        imhm.addToHistory(subtask);
         return subtasks.get(subId);
     }
 
