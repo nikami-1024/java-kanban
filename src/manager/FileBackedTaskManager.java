@@ -53,8 +53,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             fileWriter.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
-        }
-        catch (ManagerSaveException mse) {
+        } catch (ManagerSaveException mse) {
             System.out.println(mse.getMessage());
         }
     }
