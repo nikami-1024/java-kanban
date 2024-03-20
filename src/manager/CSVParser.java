@@ -2,49 +2,16 @@ package manager;
 
 import model.*;
 
+import java.util.LinkedList;
+
 public class CSVParser {
 
-    public static Task taskParser(String str) {
-
-        // здесь из-за дополнительного создания таски рушится
-        // вся блестящая логика последовательных id
-        // а может быть не только здесь =(
-
+    public static String[] taskParser(String str) {
+        // микро-парсер, одно название
         String[] rawData = str.split(",");
-
-        Task rawTask;
-        Status status;
-        int id = Integer.parseInt(rawData[1]);
-
-        if (rawData[2].equals(Status.NEW.toString())) {
-            status = Status.NEW;
-        } else if (rawData[2].equals(Status.IN_PROGRESS.toString())) {
-            status = Status.IN_PROGRESS;
-        } else {
-            status = Status.DONE;
-        }
-
-        if (rawData[0].equals(TaskType.TASK.toString())) {
-            rawTask = new Task(rawData[3], rawData[4]);
-            rawTask.setId(id);
-            if (status != Status.NEW) {
-                rawTask.setStatus(status);
-            }
-        } else if (rawData[0].equals(TaskType.EPIC.toString())) {
-            rawTask = new Epic(rawData[3], rawData[4]);
-            rawTask.setId(id);
-        } else {
-            rawTask = new Subtask(rawData[3], rawData[4], Integer.parseInt(rawData[5]));
-            rawTask.setId(id);
-            if (status != Status.NEW) {
-                rawTask.setStatus(status);
-            }
-        }
-
-        return rawTask;
+        return rawData;
     }
 
-    // это вообще сойдёт за самостоятельный парсер? он же плюшевый!
     public static int[] historyParser(String str) {
         String[] strArray = str.split(",");
         int[] idArray = new int[strArray.length];
@@ -54,5 +21,21 @@ public class CSVParser {
         }
 
         return idArray;
+    }
+
+    public static String historyToString(LinkedList<Task> historyList) {
+        StringBuilder historyStr = new StringBuilder();
+
+        for (Task task : historyList) {
+            int taskId = task.getId();
+            if (historyStr.isEmpty()) {
+                historyStr.append(taskId);
+            } else {
+                historyStr.append(",");
+                historyStr.append(taskId);
+            }
+        }
+
+        return historyStr.toString();
     }
 }

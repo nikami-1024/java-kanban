@@ -8,46 +8,58 @@ import java.util.LinkedList;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
-    protected String filepath;
+    private File filepath;
 
     public FileBackedTaskManager(String filepath) throws IOException {
         // тут надо звать super-конструктор?
 
-        this.filepath = filepath;
+        this.filepath = new File(filepath);
 
         System.out.println("\nДобро пожаловать в File Backed таск менеджер!");
         loadFromFile(this.filepath);
         System.out.println("\nВсе задачи восстановлены из файла: " + this.filepath);
     }
 
-    private void save() throws IOException {
-        Writer fileWriter = new FileWriter(filepath);
+    private void save() {
+        try {
+            Writer fileWriter = new FileWriter(filepath);
 
-        fileWriter.write("type,id,status,title,description,epic\n");
+            // где-то тут если всё пошло не так
+            if (false) {
+                throw new ManagerSaveException("Шеф, всё пропало");
+            }
 
-        for (Integer taskId : tasks.keySet()) {
-            Task task = tasks.get(taskId);
-            fileWriter.write(task.toString() + "\n");
+            fileWriter.write("type,id,status,title,description,epic\n");
+
+            for (Integer taskId : tasks.keySet()) {
+                Task task = tasks.get(taskId);
+                fileWriter.write(task.toString() + "\n");
+            }
+
+            // здесь в файл записывается избыточная информация о сабтасках, но она не мешается
+            for (Integer epicId : epics.keySet()) {
+                Epic epic = epics.get(epicId);
+                fileWriter.write(epic.toString() + "\n");
+            }
+
+            for (Integer subtaskId : subtasks.keySet()) {
+                Subtask subtask = subtasks.get(subtaskId);
+                fileWriter.write(subtask.toString() + "\n");
+            }
+
+            fileWriter.write("HHHHH\n");
+            fileWriter.write(CSVParser.historyToString(getHistory()));
+
+            fileWriter.close();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
-
-        // здесь в файл записывается избыточная информация о сабтасках, но она не мешается
-        for (Integer epicId : epics.keySet()) {
-            Epic epic = epics.get(epicId);
-            fileWriter.write(epic.toString() + "\n");
+        catch (ManagerSaveException mse) {
+            System.out.println(mse.getMessage());
         }
-
-        for (Integer subtaskId : subtasks.keySet()) {
-            Subtask subtask = subtasks.get(subtaskId);
-            fileWriter.write(subtask.toString() + "\n");
-        }
-
-        fileWriter.write("HHHHH\n");
-        fileWriter.write(historyToString());
-
-        fileWriter.close();
     }
 
-    private void loadFromFile(String filepath) throws IOException {
+    private void loadFromFile(File filepath) throws IOException {
         FileReader fReader = new FileReader(filepath);
         BufferedReader bReader = new BufferedReader(fReader);
         boolean isNextHistoryLine = false;
@@ -76,25 +88,17 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         bReader.close();
     }
 
-    private void taskFromString(String str) throws IOException {
-        Task rawTask = CSVParser.taskParser(str);
+    private void taskFromString(String str) {
+        String[] rawData = CSVParser.taskParser(str);
 
-        String strType = String.valueOf(rawTask.getClass());
-        TaskType type;
-        int id = rawTask.getId();
-        Status status = rawTask.getStatus();
-        String title = rawTask.getTitle();
-        String description = rawTask.getDescription();
+        // да, это всё ещё выглядит как парсер, но в неправильном классе
+        // как это можно было бы реализовать лучше внутри CSVParser?
 
-        strType = strType.substring(12).toUpperCase();
-
-        if (strType.equals(TaskType.TASK.toString())) {
-            type = TaskType.TASK;
-        } else if (strType.equals(TaskType.EPIC.toString())) {
-            type = TaskType.EPIC;
-        } else {
-            type = TaskType.SUBTASK;
-        }
+        TaskType type = TaskType.valueOf(rawData[0]);
+        int id = Integer.parseInt(rawData[1]);
+        Status status = Status.valueOf(rawData[2]);
+        String title = rawData[3];
+        String description = rawData[4];
 
         if (type == TaskType.TASK) {
             Task task = super.createTask(title, description);
@@ -106,9 +110,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             Epic epic = super.createEpic(title, description);
             updateEpicId(epic.getId(), id);
         } else {
-            // жуткий костыль
-            // но оно не даёт мне взять rawTask.getEpicId()
-            int epicId = Integer.parseInt(str.substring(str.length() - 1));
+            int epicId = Integer.parseInt(rawData[5]);
             Subtask subtask = super.createSubtask(title, description, epicId);
             updateSubtaskId(subtask.getId(), id);
             if (status != Status.NEW) {
@@ -124,32 +126,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         for (int i = idArray.length - 1; i >= 0; i--) {
             int taskId = idArray[i];
-
-            if (tasks.containsKey(taskId)) {
-                Task task = getTaskById(taskId);
-            } else if (epics.containsKey(taskId)) {
-                Epic epic = getEpicById(taskId);
-            } else {
-                Subtask subtask = getSubtaskById(taskId);
-            }
+            Task task = getAnyTaskById(taskId);
         }
-    }
-
-    private String historyToString() {
-        LinkedList<Task> historyList = getHistory();
-        StringBuilder historyStr = new StringBuilder();
-
-        for (Task task : historyList) {
-            int taskId = task.getId();
-            if (historyStr.isEmpty()) {
-                historyStr.append(taskId);
-            } else {
-                historyStr.append(",");
-                historyStr.append(taskId);
-            }
-        }
-
-        return historyStr.toString();
     }
 
     // обновление id таски
@@ -188,19 +166,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         epics.put(epicId, epic);
     }
 
-    // далее в унаследованных методах обернула каждый save() в try-catch
-    // иначе throws IOException прорастает в InMemoryTaskManager, где оно не нужно
-
     // создание таски
     @Override
     public Task createTask(String title, String description) {
         Task task = super.createTask(title, description);
-
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return task;
     }
 
@@ -208,11 +178,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public Epic createEpic(String title, String description) {
         Epic epic = super.createEpic(title, description);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return epic;
     }
 
@@ -220,11 +186,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public Subtask createSubtask(String title, String description, int epicId) {
         Subtask subtask = super.createSubtask(title, description, epicId);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return subtask;
     }
 
@@ -232,88 +194,56 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public void updateTaskTitle(int taskId, String title) {
         super.updateTaskTitle(taskId, title);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // обновление описания таски
     @Override
     public void updateTaskDescription(int taskId, String description) {
         super.updateTaskDescription(taskId, description);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // обновление статуса таски
     @Override
     public void updateTaskStatus(int taskId, Status status) {
         super.updateTaskStatus(taskId, status);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // обновление заголовка эпика
     @Override
     public void updateEpicTitle(int epicId, String title) {
         super.updateEpicTitle(epicId, title);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // обновление описания эпика
     @Override
     public void updateEpicDescription(int epicId, String description) {
         super.updateEpicDescription(epicId, description);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // обновление заголовка сабтаски
     @Override
     public void updateSubtaskTitle(int subId, String title) {
         super.updateSubtaskTitle(subId, title);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // обновление описания сабтаски
     @Override
     public void updateSubtaskDescription(int subId, String description) {
         super.updateSubtaskDescription(subId, description);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // обновление статуса сабтаски
     @Override
     public void updateSubtaskStatus(int subId, Status status) {
         super.updateSubtaskStatus(subId, status);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // перемещение сабтаски в новый эпик
@@ -321,88 +251,56 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public void moveSubtask(int subId, int newEpicId) {
         super.moveSubtask(subId, newEpicId);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // удаление таски по ID
     @Override
     public void deleteTask(int taskId) {
         super.deleteTask(taskId);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // удаление всех-всех тасок
     @Override
     public void deleteAllTasks() {
         super.deleteAllTasks();
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // удаление эпика с сабтасками по ID эпика
     @Override
     public void deleteEpic(int epicId) {
         super.deleteEpic(epicId);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // удаление всех-всех эпиков с сабтасками
     @Override
     public void deleteAllEpics() {
         super.deleteAllEpics();
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // удаление сабтаски по ID
     @Override
     public void deleteSubtaskFromEpic(int subId) {
         super.deleteSubtaskFromEpic(subId);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // удаление всех-всех сабтасок у эпика
     @Override
     public void deleteAllSubtasksFromEpic(int epicId) {
         super.deleteAllSubtasksFromEpic(epicId);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
     }
 
     // возврат таски по ID
     @Override
     public Task getTaskById(int taskId) {
         Task task = super.getTaskById(taskId);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return task;
     }
 
@@ -410,11 +308,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public Epic getEpicById(int epicId) {
         Epic epic = super.getEpicById(epicId);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return epic;
     }
 
@@ -422,12 +316,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public Subtask getSubtaskById(int subId) {
         Subtask subtask = super.getSubtaskById(subId);
-        try {
-            save();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        save();
         return subtask;
+    }
+
+    // возврат сущности по id
+    @Override
+    public Task getAnyTaskById(int id) {
+        Task task = super.getAnyTaskById(id);
+        save();
+        return task;
     }
 
     // возврат истории

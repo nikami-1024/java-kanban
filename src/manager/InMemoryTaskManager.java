@@ -107,7 +107,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // расчёт статуса эпика на основе статусов сабтасок
-    protected void calculateEpicStatus(int epicId) {
+    private void calculateEpicStatus(int epicId) {
         Epic epic = epics.get(epicId);
         ArrayList<Integer> subtasksIds = epic.getSubtasksIds();
         Status oldStatus = epic.getStatus();
@@ -211,7 +211,7 @@ public class InMemoryTaskManager implements TaskManager {
         calculateEpicStatus(newEpicId);
     }
 
-    // удаление таски по ID
+    // удаление таски по id
     @Override
     public void deleteTask(int taskId) {
         tasks.remove(taskId);
@@ -229,7 +229,7 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nВсе таски безвозвратно удалены");
     }
 
-    // удаление эпика с сабтасками по ID эпика
+    // удаление эпика с сабтасками по id эпика
     @Override
     public void deleteEpic(int epicId) {
         ArrayList<Integer> subtasksIds = epics.get(epicId).getSubtasksIds();
@@ -261,7 +261,7 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nВсе эпики с сабтасками безвозвратно удалены");
     }
 
-    // удаление сабтаски по ID
+    // удаление сабтаски по id
     @Override
     public void deleteSubtaskFromEpic(int subId) {
         int epicId = findEpicOfSubtask(subId);
@@ -298,7 +298,7 @@ public class InMemoryTaskManager implements TaskManager {
         calculateEpicStatus(epicId);
     }
 
-    // найти эпик по ID сабтаски
+    // найти эпик по id сабтаски
     protected int findEpicOfSubtask(int subId) {
         int epicId = -1;
 
@@ -313,7 +313,7 @@ public class InMemoryTaskManager implements TaskManager {
         return epicId;
     }
 
-    // возврат таски по ID
+    // возврат таски по id
     @Override
     public Task getTaskById(int taskId) {
         Task task = tasks.get(taskId);
@@ -321,7 +321,7 @@ public class InMemoryTaskManager implements TaskManager {
         return tasks.get(taskId);
     }
 
-    // возврат эпика по ID
+    // возврат эпика по id
     @Override
     public Epic getEpicById(int epicId) {
         Epic epic = epics.get(epicId);
@@ -329,12 +329,29 @@ public class InMemoryTaskManager implements TaskManager {
         return epics.get(epicId);
     }
 
-    // возврат сабтаски по ID
+    // возврат сабтаски по id
     @Override
     public Subtask getSubtaskById(int subId) {
         Subtask subtask = subtasks.get(subId);
         imhm.addToHistory(subtask);
         return subtasks.get(subId);
+    }
+
+    // возврат сущности по id
+    @Override
+    public Task getAnyTaskById(int id) {
+        Task task;
+
+        if (tasks.containsKey(id)) {
+            task = tasks.get(id);
+        } else if (epics.containsKey(id)) {
+            task = epics.get(id);
+        } else {
+            task = subtasks.get(id);
+        }
+
+        imhm.addToHistory(task);
+        return task;
     }
 
     // возврат истории
