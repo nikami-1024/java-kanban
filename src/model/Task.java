@@ -5,6 +5,8 @@ public class Task {
     protected String title;
     protected String description;
     protected Status status;
+
+    // count means last id
     private static int count = 0;
 
     public Task(String title, String description) {
@@ -46,8 +48,16 @@ public class Task {
         this.status = status;
     }
 
+    public void setId(int newId) {
+        this.id = newId;
+
+        if (newId >= count) {
+            count = newId;
+        }
+    }
+
     @Override
     public String toString() {
-        return "Task ID-" + id + " -- " + status + " -- " + title + ": " + description;
+        return TaskType.TASK + "," + id + "," + status + "," + title + "," + description;
     }
 }

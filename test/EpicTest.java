@@ -151,8 +151,8 @@ class EpicTest {
         Epic epicOne = imtm.createEpic("Test title", "Test description");
         final int epicId = epicOne.getId();
         final ArrayList<Integer> subtasksIds = epicOne.getSubtasksIds();
-        String expectedOutput = "Epic ID-" + epicId +
-                " -- NEW -- Test title: Test description -- " + subtasksIds.toString();
+        String expectedOutput = "EPIC," + epicId + ",NEW,Test title,Test description," +
+                subtasksIds.toString();
         String actualOutput = epicOne.toString();
 
         assertEquals(expectedOutput, actualOutput, "Эпик не удалён.");

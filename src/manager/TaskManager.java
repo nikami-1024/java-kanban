@@ -45,32 +45,35 @@ public interface TaskManager {
     // перемещение сабтаски в новый эпик
     void moveSubtask(int subId, int newEpicId);
 
-    // удаление таски по ID
+    // удаление таски по id
     void deleteTask(int taskId);
 
     // удаление всех-всех тасок
     void deleteAllTasks();
 
-    // удаление эпика с сабтасками по ID эпика
+    // удаление эпика с сабтасками по id эпика
     void deleteEpic(int epicId);
 
     // удаление всех-всех эпиков с сабтасками
     void deleteAllEpics();
 
-    // удаление сабтаски по ID
+    // удаление сабтаски по id
     void deleteSubtaskFromEpic(int subId);
 
     // удаление всех-всех сабтасок у эпика
     void deleteAllSubtasksFromEpic(int epicId);
 
-    // возврат таски по ID
+    // возврат таски по id
     Task getTaskById(int taskId);
 
-    // возврат эпика по ID
+    // возврат эпика по id
     Epic getEpicById(int epicId);
 
-    // возврат сабтаски по ID
+    // возврат сабтаски по id
     Subtask getSubtaskById(int subId);
+
+    // возврат сущности по id
+    Task getAnyTaskById(int id);
 
     // возврат истории
     LinkedList<Task> getHistory();

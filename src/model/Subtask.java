@@ -18,7 +18,7 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return "Epic ID-" + epicId + " -> Subtask ID-" + id + " -- " + status + " -- " +
-                title + ": " + description;
+        return TaskType.SUBTASK + "," + id + "," + status + "," + title + "," + description + "," +
+                epicId;
     }
 }
