@@ -50,8 +50,9 @@ public class Task {
 
     public void setId(int newId) {
         this.id = newId;
-        while (newId > count) {
-            int uselessId = generateId();
+
+        if (newId >= count) {
+            count = newId;
         }
     }
 

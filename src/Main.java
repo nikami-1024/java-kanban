@@ -1,7 +1,9 @@
+import manager.FileBackedTaskManager;
 import manager.Managers;
 import manager.TaskManager;
 import model.Task;
 
+import java.io.File;
 import java.io.IOException;
 
 public class Main {
@@ -16,54 +18,40 @@ public class Main {
         SUBTASK,7,NEW,Subtask 4 title,Sub description,3
         HHHHH
         6,7,3,2
-
         */
 
-        /* test script - will be actual after realization of magic
-        with the separate objects of FileBackedTasksManager
+        // test script
 
-        FileBackedTasksManager fileManager = new FileBackedTasksManager(new File("saveTasks2.csv"));
-        fileManager.createTask(new Task("task1", "Купить автомобиль"));
-        fileManager.createEpic(new Epic("new Epic1", "Новый Эпик"));
-        fileManager.createSubtask(new Subtask("New Subtask", "Подзадача", 2));
-        fileManager.createSubtask(new Subtask("New Subtask2", "Подзадача2", 2));
-        fileManager.getTask(1);
-        fileManager.getEpic(2);
-        fileManager.getSubtask(3);
-        System.out.println(fileManager.getTasks());
-        System.out.println(fileManager.getEpics());
-        System.out.println(fileManager.getSubTasks());
-        System.out.println(fileManager.getHistory());
-        System.out.println("\n\n" + "new" + "\n\n");
-        FileBackedTasksManager fileBackedTasksManager = loadFromFile(new File("saveTasks2.csv"));
-        System.out.println(fileBackedTasksManager.getTasks());
-        System.out.println(fileBackedTasksManager.getEpics());
-        System.out.println(fileBackedTasksManager.getSubTasks());
-        System.out.println(fileBackedTasksManager.getHistory());
+        TaskManager fbtm = Managers.getDefaultFileBacked();
+        fbtm.createTask("task 1", "Купить автомобиль");
+        fbtm.createEpic("new Epic 1", "Новый Эпик");
+        fbtm.createSubtask("New Subtask 1", "Подзадача 1", 2);
+        fbtm.createSubtask("New Subtask 2", "Подзадача 2", 2);
+        fbtm.getTaskById(1);
+        fbtm.getEpicById(2);
+        fbtm.getSubtaskById(3);
 
-         */
-
-        String filepath = "out/taskdata.csv";
-        TaskManager fbtm = Managers.getDefaultFileBacked(filepath);
+//        эти методы должны выводить список всех сущностей каждого сорта без добавления в историю?
+//        мне надо их реализовать?
+//        System.out.println(fileManager.getTasks());
+//        System.out.println(fileManager.getEpics());
+//        System.out.println(fileManager.getSubTasks());
 
         System.out.println("\nViewing history #1:");
         for (Task task : fbtm.getHistory()) {
             System.out.println(task.toString());
         }
 
-        System.out.println("\nTasks and epics creation:");
+        System.out.println("\n\n" + "new" + "\n\n");
+        FileBackedTaskManager fbtmSecond = FileBackedTaskManager.loadFromFile
+                (new File("out/newSaveFile.csv"));
 
-        Task taskOne = fbtm.createTask("Task 8 title", "Task 8 description");
-        int taskOneId = taskOne.getId();
-        Task savedTask1 = fbtm.getTaskById(taskOneId);
-
-        Task taskTwo = fbtm.createTask("Task 9 title", "Task 9 description");
-        int taskTwoId = taskTwo.getId();
-        Task savedTask2 = fbtm.getTaskById(taskTwoId);
-
+//        System.out.println(fileBackedTasksManager.getTasks());
+//        System.out.println(fileBackedTasksManager.getEpics());
+//        System.out.println(fileBackedTasksManager.getSubTasks());
 
         System.out.println("\nViewing history #2:");
-        for (Task task : fbtm.getHistory()) {
+        for (Task task : fbtmSecond.getHistory()) {
             System.out.println(task.toString());
         }
     }

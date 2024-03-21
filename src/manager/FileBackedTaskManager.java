@@ -4,61 +4,73 @@ import model.*;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
+    // это должен быть файл сохранения
     private File filepath;
 
-    public FileBackedTaskManager(String filepath) throws IOException {
-        // тут надо звать super-конструктор?
-
-        this.filepath = new File(filepath);
+    public FileBackedTaskManager() {
+        // файл не дан - создать новый
+        // кодировки?
+        this.filepath = new File("out/newSaveFile.csv");
 
         System.out.println("\nДобро пожаловать в File Backed таск менеджер!");
-        loadFromFile(this.filepath);
-        System.out.println("\nВсе задачи восстановлены из файла: " + this.filepath);
+    }
+
+    public FileBackedTaskManager(File filepath) {
+        // проверка на доступность сохранения в файл
+        // если нет - создать новый
+        if (filepath.canWrite()) {
+            this.filepath = filepath;
+        } else {
+            // кодировки?
+            this.filepath = new File("out/anotherNewSaveFile.csv");
+        }
+
+        System.out.println("\nДобро пожаловать в File Backed таск менеджер!");
     }
 
     private void save() {
         try {
             Writer fileWriter = new FileWriter(filepath);
 
-            // где-то тут если всё пошло не так
-            if (false) {
+            if (filepath.canWrite()) {
+                fileWriter.write("type,id,status,title,description,epic\n");
+
+                for (Integer taskId : tasks.keySet()) {
+                    Task task = tasks.get(taskId);
+                    fileWriter.write(task.toString() + "\n");
+                }
+
+                // здесь в файл записывается избыточная информация о сабтасках, но она не мешается
+                for (Integer epicId : epics.keySet()) {
+                    Epic epic = epics.get(epicId);
+                    fileWriter.write(epic.toString() + "\n");
+                }
+
+                for (Integer subtaskId : subtasks.keySet()) {
+                    Subtask subtask = subtasks.get(subtaskId);
+                    fileWriter.write(subtask.toString() + "\n");
+                }
+
+                fileWriter.write("HHHHH\n");
+                fileWriter.write(CSVParser.historyToString(getHistory()));
+
+                fileWriter.close();
+            } else {
                 throw new ManagerSaveException("Шеф, всё пропало");
             }
 
-            fileWriter.write("type,id,status,title,description,epic\n");
-
-            for (Integer taskId : tasks.keySet()) {
-                Task task = tasks.get(taskId);
-                fileWriter.write(task.toString() + "\n");
-            }
-
-            // здесь в файл записывается избыточная информация о сабтасках, но она не мешается
-            for (Integer epicId : epics.keySet()) {
-                Epic epic = epics.get(epicId);
-                fileWriter.write(epic.toString() + "\n");
-            }
-
-            for (Integer subtaskId : subtasks.keySet()) {
-                Subtask subtask = subtasks.get(subtaskId);
-                fileWriter.write(subtask.toString() + "\n");
-            }
-
-            fileWriter.write("HHHHH\n");
-            fileWriter.write(CSVParser.historyToString(getHistory()));
-
-            fileWriter.close();
-        } catch (IOException e) {
+        } catch (IOException | ManagerSaveException e) {
             System.out.println(e.getMessage());
-        } catch (ManagerSaveException mse) {
-            System.out.println(mse.getMessage());
         }
     }
 
-    private void loadFromFile(File filepath) throws IOException {
+    public static FileBackedTaskManager loadFromFile(File filepath) throws IOException {
+
+        FileBackedTaskManager ifbtm = new FileBackedTaskManager(filepath);
+
         FileReader fReader = new FileReader(filepath);
         BufferedReader bReader = new BufferedReader(fReader);
         boolean isNextHistoryLine = false;
@@ -76,57 +88,50 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             if (!isEmpty && !isFirstLine && !isSeparator) {
                 if (isNextHistoryLine) {
                     // read the history
-                    historyFromString(str);
+
+                    int[] idArray = CSVParser.historyParser(str);
+
+                    for (int i = idArray.length - 1; i >= 0; i--) {
+                        int taskId = idArray[i];
+                        Task task = ifbtm.getAnyTaskById(taskId);
+                    }
                 } else {
                     // read the task
-                    taskFromString(str);
+
+                    String[] rawData = CSVParser.taskParser(str);
+
+                    TaskType type = TaskType.valueOf(rawData[0]);
+                    int id = Integer.parseInt(rawData[1]);
+                    Status status = Status.valueOf(rawData[2]);
+                    String title = rawData[3];
+                    String description = rawData[4];
+
+                    if (type == TaskType.TASK) {
+                        Task task = ifbtm.createTask(title, description);
+                        ifbtm.updateTaskId(task.getId(), id);
+                        if (status != Status.NEW) {
+                            ifbtm.updateTaskStatus(id, status);
+                        }
+                    } else if (type == TaskType.EPIC) {
+                        Epic epic = ifbtm.createEpic(title, description);
+                        ifbtm.updateEpicId(epic.getId(), id);
+                    } else {
+                        int epicId = Integer.parseInt(rawData[5]);
+                        Subtask subtask = ifbtm.createSubtask(title, description, epicId);
+                        ifbtm.updateSubtaskId(subtask.getId(), id);
+                        if (status != Status.NEW) {
+                            ifbtm.updateSubtaskStatus(id, status);
+                        }
+                    }
+
+                    ifbtm.save();
                 }
             }
         }
 
         bReader.close();
-    }
-
-    private void taskFromString(String str) {
-        String[] rawData = CSVParser.taskParser(str);
-
-        // да, это всё ещё выглядит как парсер, но в неправильном классе
-        // как это можно было бы реализовать лучше внутри CSVParser?
-
-        TaskType type = TaskType.valueOf(rawData[0]);
-        int id = Integer.parseInt(rawData[1]);
-        Status status = Status.valueOf(rawData[2]);
-        String title = rawData[3];
-        String description = rawData[4];
-
-        if (type == TaskType.TASK) {
-            Task task = super.createTask(title, description);
-            updateTaskId(task.getId(), id);
-            if (status != Status.NEW) {
-                super.updateTaskStatus(id, status);
-            }
-        } else if (type == TaskType.EPIC) {
-            Epic epic = super.createEpic(title, description);
-            updateEpicId(epic.getId(), id);
-        } else {
-            int epicId = Integer.parseInt(rawData[5]);
-            Subtask subtask = super.createSubtask(title, description, epicId);
-            updateSubtaskId(subtask.getId(), id);
-            if (status != Status.NEW) {
-                super.updateSubtaskStatus(id, status);
-            }
-        }
-
-        save();
-    }
-
-    private void historyFromString(String str) {
-        int[] idArray = CSVParser.historyParser(str);
-
-        for (int i = idArray.length - 1; i >= 0; i--) {
-            int taskId = idArray[i];
-            Task task = getAnyTaskById(taskId);
-        }
+        System.out.println("\nВсе задачи восстановлены из файла: " + filepath);
+        return ifbtm;
     }
 
     // обновление id таски
@@ -325,17 +330,5 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         Task task = super.getAnyTaskById(id);
         save();
         return task;
-    }
-
-    // возврат истории
-    @Override
-    public LinkedList<Task> getHistory() {
-        return super.getHistory();
-    }
-
-    // возврат количества всех существующих сущностей
-    @Override
-    public int getEntitiesCounter() {
-        return super.getEntitiesCounter();
     }
 }
