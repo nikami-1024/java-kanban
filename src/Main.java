@@ -43,8 +43,8 @@ public class Main {
         }
 
         System.out.println("\n\n" + "new" + "\n\n");
-        FileBackedTaskManager fbtmSecond = FileBackedTaskManager.loadFromFile
-                (new File("out/newSaveFile.csv"));
+        FileBackedTaskManager fbtmSecond = FileBackedTaskManager.loadFromFile(
+                new File("out/newSaveFile.csv"));
 
 //        System.out.println(fileBackedTasksManager.getTasks());
 //        System.out.println(fileBackedTasksManager.getEpics());
