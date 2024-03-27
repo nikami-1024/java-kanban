@@ -1,5 +1,7 @@
 package model;
 
+import java.time.format.DateTimeFormatter;
+
 public class Subtask extends Task {
     protected int epicId;
 
@@ -18,7 +20,8 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return TaskType.SUBTASK + "," + id + "," + status + "," + title + "," + description + "," +
-                epicId;
+        return TaskType.SUBTASK + "," + id + "," + status + "," + title + "," + description + ","
+                + getStartTime().format(DateTimeFormatter.ofPattern("HH:mm dd-MM-yyyy")) + ","
+                + getDuration() + "," + epicId;
     }
 }

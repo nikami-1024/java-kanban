@@ -128,9 +128,9 @@ class SubtaskTest {
                 epicId);
 
         String expectedOutput = "SUBTASK," + subtaskOne.getId() + ",NEW,Test title," +
-                "Test description," + epicId;
+                "Test description,19:59 25-10-2000,0," + epicId;
         String actualOutput = subtaskOne.toString();
 
-        assertEquals(expectedOutput, actualOutput, "Сабтаски не удалены.");
+        assertEquals(expectedOutput, actualOutput, "Выводы не совпадают.");
     }
 }

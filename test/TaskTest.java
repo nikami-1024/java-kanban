@@ -87,9 +87,9 @@ class TaskTest {
         Task taskOne = imtm.createTask("Test title", "Test description");
         final int taskId = taskOne.getId();
 
-        String expectedOutput = "TASK," + taskId + ",NEW,Test title,Test description";
+        String expectedOutput = "TASK," + taskId + ",NEW,Test title,Test description,19:59 25-10-2000,0";
         String actualOutput = taskOne.toString();
 
-        assertEquals(expectedOutput, actualOutput, "Задачи не удалены.");
+        assertEquals(expectedOutput, actualOutput, "Выводы не совпадают.");
     }
 }

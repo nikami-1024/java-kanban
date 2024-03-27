@@ -152,9 +152,9 @@ class EpicTest {
         final int epicId = epicOne.getId();
         final ArrayList<Integer> subtasksIds = epicOne.getSubtasksIds();
         String expectedOutput = "EPIC," + epicId + ",NEW,Test title,Test description," +
-                subtasksIds.toString();
+                "19:59 25-10-2000,0," + subtasksIds.toString();
         String actualOutput = epicOne.toString();
 
-        assertEquals(expectedOutput, actualOutput, "Эпик не удалён.");
+        assertEquals(expectedOutput, actualOutput, "Выводы не совпадают.");
     }
 }

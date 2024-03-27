@@ -3,6 +3,8 @@ package manager;
 import model.*;
 
 import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -13,7 +15,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public FileBackedTaskManager() {
         // файл не дан - создать новый
         // кодировки?
-        this.filepath = new File("out/newSaveFile.csv");
+        this.filepath = new File("out/newSave-"
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy--HH-mm-ss"))
+                + ".csv");
 
         System.out.println("\nДобро пожаловать в File Backed таск менеджер!");
     }
@@ -25,7 +29,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             this.filepath = filepath;
         } else {
             // кодировки?
-            this.filepath = new File("out/anotherNewSaveFile.csv");
+            this.filepath = new File("out/newSave-"
+                    + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy--HH-mm-ss"))
+                    + ".csv");
         }
 
         System.out.println("\nДобро пожаловать в File Backed таск менеджер!");
@@ -36,7 +42,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             Writer fileWriter = new FileWriter(filepath);
 
             if (filepath.canWrite()) {
-                fileWriter.write("type,id,status,title,description,epic\n");
+                fileWriter.write("type,id,status,title,description,startTime,duration,epic\n");
 
                 for (Integer taskId : tasks.keySet()) {
                     Task task = tasks.get(taskId);
@@ -54,7 +60,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     fileWriter.write(subtask.toString() + "\n");
                 }
 
-                fileWriter.write("HHHHH\n");
+                // разделитель и история просмотров
+                fileWriter.write("\n");
                 fileWriter.write(CSVParser.historyToString(getHistory()));
 
                 fileWriter.close();
@@ -67,70 +74,79 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public static FileBackedTaskManager loadFromFile(File filepath) throws IOException {
+    public static FileBackedTaskManager loadFromFile(File filepath){
 
         FileBackedTaskManager ifbtm = new FileBackedTaskManager(filepath);
 
-        FileReader fReader = new FileReader(filepath);
-        BufferedReader bReader = new BufferedReader(fReader);
-        boolean isNextHistoryLine = false;
+        try {
+            FileReader fReader = new FileReader(filepath);
+            BufferedReader bReader = new BufferedReader(fReader);
+            boolean isNextHistoryLine = false;
 
-        while (bReader.ready()) {
-            String str = bReader.readLine();
-            boolean isFirstLine = str.startsWith("type");
-            boolean isEmpty = str.isEmpty();
-            boolean isSeparator = str.startsWith("HHHH");
+            while (bReader.ready()) {
+                String str = bReader.readLine();
+                boolean isFirstLine = str.startsWith("type");
+                boolean isEmpty = str.isEmpty();
 
-            if (isSeparator) {
-                isNextHistoryLine = true;
-            }
+                if (isEmpty) {
+                    isNextHistoryLine = true;
+                } else if (!isFirstLine) {
+                    if (isNextHistoryLine) {
+                        // read the history
+                        int[] idArray = CSVParser.historyParser(str);
 
-            if (!isEmpty && !isFirstLine && !isSeparator) {
-                if (isNextHistoryLine) {
-                    // read the history
-
-                    int[] idArray = CSVParser.historyParser(str);
-
-                    for (int i = idArray.length - 1; i >= 0; i--) {
-                        int taskId = idArray[i];
-                        Task task = ifbtm.getAnyTaskById(taskId);
-                    }
-                } else {
-                    // read the task
-
-                    String[] rawData = CSVParser.taskParser(str);
-
-                    TaskType type = TaskType.valueOf(rawData[0]);
-                    int id = Integer.parseInt(rawData[1]);
-                    Status status = Status.valueOf(rawData[2]);
-                    String title = rawData[3];
-                    String description = rawData[4];
-
-                    if (type == TaskType.TASK) {
-                        Task task = ifbtm.createTask(title, description);
-                        ifbtm.updateTaskId(task.getId(), id);
-                        if (status != Status.NEW) {
-                            ifbtm.updateTaskStatus(id, status);
+                        for (int i = idArray.length - 1; i >= 0; i--) {
+                            int taskId = idArray[i];
+                            Task task = ifbtm.getAnyTaskById(taskId);
                         }
-                    } else if (type == TaskType.EPIC) {
-                        Epic epic = ifbtm.createEpic(title, description);
-                        ifbtm.updateEpicId(epic.getId(), id);
                     } else {
-                        int epicId = Integer.parseInt(rawData[5]);
-                        Subtask subtask = ifbtm.createSubtask(title, description, epicId);
-                        ifbtm.updateSubtaskId(subtask.getId(), id);
-                        if (status != Status.NEW) {
-                            ifbtm.updateSubtaskStatus(id, status);
-                        }
-                    }
+                        // read the task
+                        String[] rawData = CSVParser.taskParser(str);
 
-                    ifbtm.save();
+                        TaskType type = TaskType.valueOf(rawData[0]);
+                        int id = Integer.parseInt(rawData[1]);
+                        Status status = Status.valueOf(rawData[2]);
+                        String title = rawData[3];
+                        String description = rawData[4];
+                        LocalDateTime startTime = LocalDateTime.parse(rawData[5],
+                                DateTimeFormatter.ofPattern("HH:mm dd-MM-yyyy"));
+                        Long duration = Long.valueOf(rawData[6]);
+
+                        if (type == TaskType.TASK) {
+                            Task task = ifbtm.createTask(title, description);
+                            ifbtm.updateTaskId(task.getId(), id);
+                            if (status != Status.NEW) {
+                                ifbtm.updateTaskStatus(id, status);
+                            }
+                            ifbtm.updateTaskStartTime(id, startTime);
+                            ifbtm.updateTaskDuration(id, duration);
+
+                        } else if (type == TaskType.EPIC) {
+                            Epic epic = ifbtm.createEpic(title, description);
+                            ifbtm.updateEpicId(epic.getId(), id);
+
+                        } else {
+                            int epicId = Integer.parseInt(rawData[7]);
+                            Subtask subtask = ifbtm.createSubtask(title, description, epicId);
+                            ifbtm.updateSubtaskId(subtask.getId(), id);
+                            if (status != Status.NEW) {
+                                ifbtm.updateSubtaskStatus(id, status);
+                            }
+                            ifbtm.updateSubtaskStartTime(id, startTime);
+                            ifbtm.updateSubtaskDuration(id, duration);
+                        }
+
+                        ifbtm.save();
+                    }
                 }
             }
+
+            bReader.close();
+            System.out.println("\nВсе задачи восстановлены из файла: " + filepath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
-        bReader.close();
-        System.out.println("\nВсе задачи восстановлены из файла: " + filepath);
         return ifbtm;
     }
 
@@ -215,6 +231,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         save();
     }
 
+    // установка времени старта задачи
+    @Override
+    public void updateTaskStartTime(int taskId, LocalDateTime startTime) {
+        super.updateTaskStartTime(taskId, startTime);
+        save();
+    }
+
+    // установка длительности задачи
+    @Override
+    public void updateTaskDuration(int taskId, long durationInMinutes) {
+        super.updateTaskDuration(taskId, durationInMinutes);
+        save();
+    }
+
     // обновление заголовка эпика
     @Override
     public void updateEpicTitle(int epicId, String title) {
@@ -247,6 +277,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public void updateSubtaskStatus(int subId, Status status) {
         super.updateSubtaskStatus(subId, status);
+        save();
+    }
+
+    // установка времени старта сабтаски
+    @Override
+    public void updateSubtaskStartTime(int subId, LocalDateTime startTime) {
+        super.updateSubtaskStartTime(subId, startTime);
+        save();
+    }
+
+    // установка длительности сабтаски
+    @Override
+    public void updateSubtaskDuration(int subId, long durationInMinutes) {
+        super.updateSubtaskDuration(subId, durationInMinutes);
         save();
     }
 
