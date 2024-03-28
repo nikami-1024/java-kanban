@@ -5,6 +5,8 @@ import model.Status;
 import model.Subtask;
 import model.Task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -57,7 +59,12 @@ public class InMemoryTaskManager implements TaskManager {
 
         System.out.println("\nДобавлена новая сабтаска в эпик ID-" + epicId + ":");
         System.out.println("ID-" + subId + " -- " + title);
+
         calculateEpicStatus(epicId);
+        calculateEpicStartTime(epicId);
+        calculateEpicDuration(epicId);
+        calculateEpicEndTime(epicId);
+
         return subtask;
     }
 
@@ -88,6 +95,24 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nТаска ID-" + taskId + " обновлена");
     }
 
+    // установка времени старта задачи
+    @Override
+    public void updateTaskStartTime(int taskId, LocalDateTime startTime) {
+        Task task = tasks.get(taskId);
+        task.setStartTime(startTime);
+        tasks.put(taskId, task);
+        System.out.println("\nТаска ID-" + taskId + " обновлена");
+    }
+
+    // установка длительности задачи
+    @Override
+    public void updateTaskDuration(int taskId, long durationInMinutes) {
+        Task task = tasks.get(taskId);
+        task.setDuration(durationInMinutes);
+        tasks.put(taskId, task);
+        System.out.println("\nТаска ID-" + taskId + " обновлена");
+    }
+
     // обновление заголовка эпика
     @Override
     public void updateEpicTitle(int epicId, String title) {
@@ -110,10 +135,9 @@ public class InMemoryTaskManager implements TaskManager {
     private void calculateEpicStatus(int epicId) {
         Epic epic = epics.get(epicId);
         ArrayList<Integer> subtasksIds = epic.getSubtasksIds();
-        Status oldStatus = epic.getStatus();
         Status newStatus;
 
-        if (subtasksIds.size() == 0) {
+        if (subtasksIds.isEmpty()) {
             newStatus = Status.NEW;
         } else {
             boolean isExistNew = false;
@@ -140,12 +164,79 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
 
-        if (oldStatus != newStatus) {
-            epic.setStatus(newStatus);
-            epics.put(epicId, epic);
-        }
+        epic.setStatus(newStatus);
+        epics.put(epicId, epic);
 
         System.out.println("Статус эпика ID-" + epicId + " пересчитан");
+    }
+
+    // расчёт времени старта эпика на основе стартов сабтасок
+    private void calculateEpicStartTime(int epicId) {
+        Epic epic = epics.get(epicId);
+        ArrayList<Integer> subtasksIds = epic.getSubtasksIds();
+        LocalDateTime newStartTime = LocalDateTime.MAX;
+
+        if (subtasksIds.isEmpty()) {
+            // придумано из головы, в ТЗ не описано
+            newStartTime = LocalDateTime.now().plusWeeks(1);
+        } else {
+            for (Integer subId : subtasksIds) {
+                LocalDateTime subStartTime = subtasks.get(subId).getStartTime();
+                if (subStartTime != null && subStartTime.isBefore(newStartTime)) {
+                    newStartTime = subStartTime;
+                }
+            }
+        }
+
+        epic.setStartTime(newStartTime);
+        epics.put(epicId, epic);
+
+        System.out.println("Время начала эпика ID-" + epicId + " пересчитано");
+    }
+
+    // расчёт длительности эпика на основе длительности сабтасок
+    private void calculateEpicDuration(int epicId) {
+        Epic epic = epics.get(epicId);
+        ArrayList<Integer> subtasksIds = epic.getSubtasksIds();
+        Duration newDuration = Duration.ZERO;
+
+        if (!subtasksIds.isEmpty()) {
+            for (Integer subId : subtasksIds) {
+                if (subtasks.get(subId).getDuration() > 0) {
+                    Duration subDuration = Duration.ofMinutes(subtasks.get(subId).getDuration());
+                    newDuration = newDuration.plus(subDuration);
+                }
+            }
+        }
+
+        epic.setDuration(newDuration.toMinutes());
+        epics.put(epicId, epic);
+
+        System.out.println("Длительность эпика ID-" + epicId + " пересчитана");
+    }
+
+    // расчёт времени окончания эпика на основе окончания сабтасок
+    private void calculateEpicEndTime(int epicId) {
+        Epic epic = epics.get(epicId);
+        ArrayList<Integer> subtasksIds = epic.getSubtasksIds();
+        LocalDateTime newEndTime = LocalDateTime.MIN;
+
+        if (subtasksIds.isEmpty()) {
+            // придумано из головы, в ТЗ не описано
+            newEndTime = LocalDateTime.now().plusWeeks(2);
+        } else {
+            for (Integer subId : subtasksIds) {
+                LocalDateTime subEndTime = subtasks.get(subId).getEndTime();
+                if (subEndTime != null && subEndTime.isAfter(newEndTime)) {
+                    newEndTime = subEndTime;
+                }
+            }
+        }
+
+        epic.setEndTime(newEndTime);
+        epics.put(epicId, epic);
+
+        System.out.println("Время окончания эпика ID-" + epicId + " пересчитано");
     }
 
     // обновление заголовка сабтаски
@@ -180,6 +271,33 @@ public class InMemoryTaskManager implements TaskManager {
         calculateEpicStatus(epicId);
     }
 
+    // установка времени старта сабтаски
+    public void updateSubtaskStartTime(int subId, LocalDateTime startTime) {
+        int epicId = findEpicOfSubtask(subId);
+        Subtask subtask = subtasks.get(subId);
+        subtask.setStartTime(startTime);
+        subtasks.put(subId, subtask);
+
+        System.out.println("\nСабтаска ID-" + subId + " обновлена");
+
+        calculateEpicStartTime(epicId);
+        calculateEpicEndTime(epicId);
+    }
+
+    // установка длительности сабтаски
+    @Override
+    public void updateSubtaskDuration(int subId, long durationInMinutes) {
+        int epicId = findEpicOfSubtask(subId);
+        Subtask subtask = subtasks.get(subId);
+        subtask.setDuration(durationInMinutes);
+        subtasks.put(subId, subtask);
+
+        System.out.println("\nСабтаска ID-" + subId + " обновлена");
+
+        calculateEpicDuration(epicId);
+        calculateEpicEndTime(epicId);
+    }
+
     // перемещение сабтаски в новый эпик
     // сущность в истории просмотров (если была) не затрагивается никак
     @Override
@@ -207,8 +325,16 @@ public class InMemoryTaskManager implements TaskManager {
 
         System.out.println("\nСабтаска ID-" + subId + " перемещена из эпика ID-" +
                 oldEpicId + " в эпик ID-" + newEpicId);
+
         calculateEpicStatus(oldEpicId);
+        calculateEpicStartTime(oldEpicId);
+        calculateEpicDuration(oldEpicId);
+        calculateEpicEndTime(oldEpicId);
+
         calculateEpicStatus(newEpicId);
+        calculateEpicStartTime(newEpicId);
+        calculateEpicDuration(newEpicId);
+        calculateEpicEndTime(newEpicId);
     }
 
     // удаление таски по id
@@ -277,6 +403,9 @@ public class InMemoryTaskManager implements TaskManager {
 
         System.out.println("\nСабтаска ID-" + subId + " удалена из эпика ID-" + epicId);
         calculateEpicStatus(epicId);
+        calculateEpicStartTime(epicId);
+        calculateEpicDuration(epicId);
+        calculateEpicEndTime(epicId);
     }
 
     // удаление всех-всех сабтасок у эпика
@@ -296,6 +425,9 @@ public class InMemoryTaskManager implements TaskManager {
 
         System.out.println("\nСабтаски эпика ID-" + epicId + " очищены сожжением");
         calculateEpicStatus(epicId);
+        calculateEpicStartTime(epicId);
+        calculateEpicDuration(epicId);
+        calculateEpicEndTime(epicId);
     }
 
     // найти эпик по id сабтаски

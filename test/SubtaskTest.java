@@ -3,7 +3,10 @@ import manager.TaskManager;
 import model.Epic;
 import model.Status;
 import model.Subtask;
+import model.Task;
 import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -70,6 +73,95 @@ class SubtaskTest {
     }
 
     @Test
+    void testSubtaskEmptyStartTime() {
+        Epic epicOne = imtm.createEpic("Test SubtaskEmptyStartTime epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title", "Description", epicId);
+        final int subId = subtaskOne.getId();
+
+        final Subtask savedSubtask = imtm.getSubtaskById(subId);
+
+        assertEquals(LocalDateTime.of(2000, 10, 25, 19, 59),
+                savedSubtask.getStartTime(), "Время старта не совпадает.");
+    }
+
+    @Test
+    void testSubtaskStartTime() {
+        Epic epicOne = imtm.createEpic("Test updateSubtaskStartTime epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title", "Description", epicId);
+        final int subId = subtaskOne.getId();
+
+        imtm.updateSubtaskStartTime(subId, LocalDateTime.of(2011, 11, 24,
+                13, 25));
+        final Subtask savedSubtask = imtm.getSubtaskById(subId);
+
+        assertEquals(LocalDateTime.of(2011, 11, 24, 13,
+                25), savedSubtask.getStartTime(), "Время старта не совпадает.");
+    }
+
+    @Test
+    void testSubtaskEmptyDuration() {
+        Epic epicOne = imtm.createEpic("Test SubtaskEmptyDuration epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title", "Description", epicId);
+        final int subId = subtaskOne.getId();
+
+        final Subtask savedSubtask = imtm.getSubtaskById(subId);
+
+        assertEquals(0, savedSubtask.getDuration(), "Длительность не совпадает.");
+    }
+
+    @Test
+    void testSubtaskDuration() {
+        Epic epicOne = imtm.createEpic("Test updateSubtaskDuration epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title", "Description", epicId);
+        final int subId = subtaskOne.getId();
+
+        imtm.updateSubtaskDuration(subId, 53);
+        final Subtask savedSubtask = imtm.getSubtaskById(subId);
+
+        assertEquals(53, savedSubtask.getDuration(), "Длительность не совпадает.");
+    }
+
+    @Test
+    void testSubtaskEmptyEndTime() {
+        Epic epicOne = imtm.createEpic("Test SubtaskEmptyEndTime epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title", "Description", epicId);
+        final int subId = subtaskOne.getId();
+
+        final Subtask savedSubtask = imtm.getSubtaskById(subId);
+
+        assertEquals(LocalDateTime.of(2000, 10, 25, 19, 59),
+                savedSubtask.getEndTime(), "Время окончания не совпадает.");
+    }
+
+    @Test
+    void testSubtaskEndTime() {
+        Epic epicOne = imtm.createEpic("Test subtask.getEndTime() epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title", "Description", epicId);
+        final int subId = subtaskOne.getId();
+
+
+        imtm.updateSubtaskStartTime(subId, LocalDateTime.of(2011, 11, 24,
+                13, 25));
+        imtm.updateSubtaskDuration(subId, 15);
+        final Subtask savedSubtask = imtm.getSubtaskById(subId);
+
+        assertEquals(LocalDateTime.of(2011, 11, 24, 13,
+                40), savedSubtask.getEndTime(), "Время окончания не совпадает.");
+    }
+
+    @Test
     void testSubtaskMoving() {
         Epic epicOne = imtm.createEpic("Test moveSubtask epic 1",
                 "Test description");
@@ -128,9 +220,9 @@ class SubtaskTest {
                 epicId);
 
         String expectedOutput = "SUBTASK," + subtaskOne.getId() + ",NEW,Test title," +
-                "Test description," + epicId;
+                "Test description,19:59 25-10-2000,0," + epicId;
         String actualOutput = subtaskOne.toString();
 
-        assertEquals(expectedOutput, actualOutput, "Сабтаски не удалены.");
+        assertEquals(expectedOutput, actualOutput, "Выводы не совпадают.");
     }
 }
