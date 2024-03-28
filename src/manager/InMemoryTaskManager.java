@@ -95,8 +95,8 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("\nТаска ID-" + taskId + " обновлена");
     }
 
-    // эти новые публичные методы надо добавить в интерфейс TaskManager?
     // установка времени старта задачи
+    @Override
     public void updateTaskStartTime(int taskId, LocalDateTime startTime) {
         Task task = tasks.get(taskId);
         task.setStartTime(startTime);
@@ -105,6 +105,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // установка длительности задачи
+    @Override
     public void updateTaskDuration(int taskId, long durationInMinutes) {
         Task task = tasks.get(taskId);
         task.setDuration(durationInMinutes);
@@ -284,6 +285,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // установка длительности сабтаски
+    @Override
     public void updateSubtaskDuration(int subId, long durationInMinutes) {
         int epicId = findEpicOfSubtask(subId);
         Subtask subtask = subtasks.get(subId);

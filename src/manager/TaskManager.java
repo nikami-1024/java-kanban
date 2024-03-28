@@ -5,6 +5,7 @@ import model.Status;
 import model.Subtask;
 import model.Task;
 
+import java.time.LocalDateTime;
 import java.util.LinkedList;
 
 public interface TaskManager {
@@ -27,6 +28,12 @@ public interface TaskManager {
     // обновление статуса таски
     void updateTaskStatus(int taskId, Status status);
 
+    // установка времени старта задачи
+    public void updateTaskStartTime(int taskId, LocalDateTime startTime);
+
+    // установка длительности задачи
+    public void updateTaskDuration(int taskId, long durationInMinutes);
+
     // обновление заголовка эпика
     void updateEpicTitle(int epicId, String title);
 
@@ -41,6 +48,12 @@ public interface TaskManager {
 
     // обновление статуса сабтаски
     void updateSubtaskStatus(int subId, Status status);
+
+    // установка времени старта сабтаски
+    public void updateSubtaskStartTime(int subId, LocalDateTime startTime);
+
+    // установка длительности сабтаски
+    public void updateSubtaskDuration(int subId, long durationInMinutes);
 
     // перемещение сабтаски в новый эпик
     void moveSubtask(int subId, int newEpicId);

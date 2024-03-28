@@ -5,6 +5,7 @@ import model.Status;
 import model.Subtask;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,6 +100,106 @@ class EpicTest {
         final Status epicStatus = epicOne.getStatus();
 
         assertEquals(Status.DONE, epicStatus, "Статусы не совпадают.");
+    }
+
+    @Test
+    void testEpicEmptyStartTime() {
+        Epic epicOne = imtm.createEpic("Test EpicEmptyStartTime epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title 1", "Description 1", epicId);
+        Subtask subtaskTwo = imtm.createSubtask("Title 2", "Description 2", epicId);
+
+        final Epic savedEpic = imtm.getEpicById(epicId);
+
+        assertEquals(LocalDateTime.of(2000, 10, 25, 19, 59),
+                savedEpic.getStartTime(), "Время старта не совпадает.");
+    }
+
+    @Test
+    void testEpicStartTime() {
+        Epic epicOne = imtm.createEpic("Test EpicStartTime epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title 1", "Description 1", epicId);
+        Subtask subtaskTwo = imtm.createSubtask("Title 2", "Description 2", epicId);
+        final int subOneId = subtaskOne.getId();
+        final int subTwoId = subtaskTwo.getId();
+
+        imtm.updateSubtaskStartTime(subOneId, LocalDateTime.of(2012, 12,
+                23, 14, 26));
+        imtm.updateSubtaskStartTime(subTwoId, LocalDateTime.of(2012, 12,
+                23, 14, 27));
+        final Epic savedEpic = imtm.getEpicById(epicId);
+
+        assertEquals(LocalDateTime.of(2012, 12, 23, 14,
+                26), savedEpic.getStartTime(), "Время старта не совпадает.");
+    }
+
+    @Test
+    void testEpicEmptyDuration() {
+        Epic epicOne = imtm.createEpic("Test EpicEmptyDuration epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title 1", "Description 1", epicId);
+        Subtask subtaskTwo = imtm.createSubtask("Title 2", "Description 2", epicId);
+
+        final Epic savedEpic = imtm.getEpicById(epicId);
+
+        assertEquals(0, savedEpic.getDuration(), "Длительность не совпадает.");
+    }
+
+    @Test
+    void testEpicDuration() {
+        Epic epicOne = imtm.createEpic("Test EpicDuration epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title 1", "Description 1", epicId);
+        Subtask subtaskTwo = imtm.createSubtask("Title 2", "Description 2", epicId);
+        final int subOneId = subtaskOne.getId();
+        final int subTwoId = subtaskTwo.getId();
+
+        imtm.updateSubtaskDuration(subOneId, 25);
+        imtm.updateSubtaskDuration(subTwoId, 26);
+        final Epic savedEpic = imtm.getEpicById(epicId);
+
+        assertEquals(51, savedEpic.getDuration(), "Длительность не совпадает.");
+    }
+
+    @Test
+    void testEpicEmptyEndTime() {
+        Epic epicOne = imtm.createEpic("Test EpicEmptyEndTime epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title 1", "Description 1", epicId);
+        Subtask subtaskTwo = imtm.createSubtask("Title 2", "Description 2", epicId);
+
+        final Epic savedEpic = imtm.getEpicById(epicId);
+
+        assertEquals(LocalDateTime.of(2000, 10, 25, 19, 59),
+                savedEpic.getEndTime(), "Время окончания не совпадает.");
+    }
+
+    @Test
+    void testEpicEndTime() {
+        Epic epicOne = imtm.createEpic("Test EpicEndTime epic",
+                "Test description");
+        final int epicId = epicOne.getId();
+        Subtask subtaskOne = imtm.createSubtask("Title 1", "Description 1", epicId);
+        Subtask subtaskTwo = imtm.createSubtask("Title 2", "Description 2", epicId);
+        final int subOneId = subtaskOne.getId();
+        final int subTwoId = subtaskTwo.getId();
+
+        imtm.updateSubtaskStartTime(subOneId, LocalDateTime.of(2015, 5, 5,
+                18, 40));
+        imtm.updateSubtaskStartTime(subTwoId, LocalDateTime.of(2015, 6, 6,
+                19, 40));
+        imtm.updateSubtaskDuration(subOneId, 56);
+        imtm.updateSubtaskDuration(subTwoId, 85);
+        final Epic savedEpic = imtm.getEpicById(epicId);
+
+        assertEquals(LocalDateTime.of(2015, 6, 6, 21, 5),
+                savedEpic.getEndTime(), "Время окончания не совпадает.");
     }
 
     @Test
